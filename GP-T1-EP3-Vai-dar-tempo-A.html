@@ -219,42 +219,7 @@
       color: #f0f4f8;
     }
 
-    /* Interagiu overlay */
-    #interacted-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 1200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #interacted-box {
-      background: #f6f9fa;
-      color: #111;
-      padding: 22px 20px;
-      border-radius: 12px;
-      max-width: 480px;
-      width: 90%;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      text-align: left;
-      position: relative;
-    }
-    #interacted-box h3 { margin: 0 0 8px 0; font-size:18px }
-    #interacted-box #interacted-message { margin: 6px 0 14px 0; color:#333 }
-    #interacted-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #3498db;
-      border: none;
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #interacted-close:hover { background: #2980b9 }
+    /* (REMOVIDO) Interagiu overlay — substituído por popupOverlay */
 
     /* Botão fechar no popup */
     #popup-close {
@@ -377,14 +342,7 @@
     </div>
   </div>
 
-  <!-- Interagiu overlay (mostra quando usuário já participou dessa ODA) -->
-  <div id="interacted-overlay">
-    <div id="interacted-box">
-      <button id="interacted-close" aria-label="Fechar aviso">OK</button>
-      <h3>Você já participou desta atividade</h3>
-      <p id="interacted-message"></p>
-    </div>
-  </div>
+  <!-- (REMOVIDO) Interagiu overlay — substituído por popupOverlay -->
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -415,9 +373,10 @@
       const popupTitle = document.getElementById('titlePopUp');
       const popupScore = document.getElementById('popup-score');
       const popupClose = document.getElementById('popup-close');
-      const interactedOverlay = document.getElementById('interacted-overlay');
-      const interactedMessage = document.getElementById('interacted-message');
-      const interactedClose = document.getElementById('interacted-close');
+      // NOTE: small interacted modal removed; we'll reuse popupOverlay to show date/time
+      const interactedMessage = null;
+      const interactedClose = null;
+      const interactedOverlay = null;
     //   const popupImage = document.getElementById('popup-image');
 
       function renderTimeline() {
@@ -618,7 +577,10 @@
         const odaH2 = document.querySelector('#LP_OPCAO_2 h2');
         const odaH1 = document.querySelector('.wrapper-itens h1');
         const odaTitle = (odaH2 && odaH2.textContent) || (odaH1 && odaH1.textContent) || document.title || 'Desconhecida';
-        saveScoreToStorage(totalPoints, odaTitle.trim());
+        // Salva pontuação somente se foram alocadas tarefas (execução real)
+        if (timelineTasks && timelineTasks.length > 0) {
+          saveScoreToStorage(totalPoints, odaTitle.trim());
+        }
         popupTitle.textContent = pointsText;
         popupMessage.textContent = message;
         // popupImage.src = imageSrc;
@@ -698,12 +660,16 @@
         const odaH2 = document.querySelector('#LP_OPCAO_2 h2');
         const odaH1 = document.querySelector('.wrapper-itens h1');
         const odaTitle = (odaH2 && odaH2.textContent) || (odaH1 && odaH1.textContent) || document.title || 'Desconhecida';
-        if (hasInteractedWithOda(odaTitle)) {
-          const last = getLastInteractionDateForOda(odaTitle);
-          const pretty = last ? new Date(last).toLocaleString() : 'desconhecida';
-          if (interactedMessage) interactedMessage.textContent = `Você já interagiu com esta atividade em ${pretty}. Você não pode realizá-la novamente.`;
-          if (interactedOverlay) interactedOverlay.style.display = 'flex';
-          if (interactedClose) interactedClose.focus();
+        // Só considera interação existente se realmente houver registro com data
+        const last = getLastInteractionDateForOda(odaTitle);
+        if (last) {
+          // Reutiliza o popup principal para mostrar data/hora quando já interagiu
+          const pretty = new Date(last).toLocaleString();
+          popupTitle.textContent = 'Já participou desta atividade';
+          popupMessage.textContent = `Você já interagiu com esta atividade em ${pretty}.`; 
+          if (popupScore) popupScore.textContent = '';
+          popupOverlay.style.display = 'flex';
+          if (popupClose) popupClose.focus();
           return;
         }
         startGame();
@@ -735,11 +701,7 @@
         });
       }
 
-      if (interactedClose) {
-        interactedClose.addEventListener('click', function() {
-          if (interactedOverlay) interactedOverlay.style.display = 'none';
-        });
-      }
+      // the small interacted overlay was removed — no listener needed
 
       startScreen.classList.add('active');
     });
