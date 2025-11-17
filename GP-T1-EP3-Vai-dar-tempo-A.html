@@ -219,6 +219,43 @@
       color: #f0f4f8;
     }
 
+    /* Interagiu overlay */
+    #interacted-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #interacted-box {
+      background: #f6f9fa;
+      color: #111;
+      padding: 22px 20px;
+      border-radius: 12px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      text-align: left;
+      position: relative;
+    }
+    #interacted-box h3 { margin: 0 0 8px 0; font-size:18px }
+    #interacted-box #interacted-message { margin: 6px 0 14px 0; color:#333 }
+    #interacted-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #3498db;
+      border: none;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #interacted-close:hover { background: #2980b9 }
+
     /* Botão fechar no popup */
     #popup-close {
       position: absolute;
@@ -340,6 +377,15 @@
     </div>
   </div>
 
+  <!-- Interagiu overlay (mostra quando usuário já participou dessa ODA) -->
+  <div id="interacted-overlay">
+    <div id="interacted-box">
+      <button id="interacted-close" aria-label="Fechar aviso">OK</button>
+      <h3>Você já participou desta atividade</h3>
+      <p id="interacted-message"></p>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const allTasks = [
@@ -369,6 +415,9 @@
       const popupTitle = document.getElementById('titlePopUp');
       const popupScore = document.getElementById('popup-score');
       const popupClose = document.getElementById('popup-close');
+      const interactedOverlay = document.getElementById('interacted-overlay');
+      const interactedMessage = document.getElementById('interacted-message');
+      const interactedClose = document.getElementById('interacted-close');
     //   const popupImage = document.getElementById('popup-image');
 
       function renderTimeline() {
@@ -582,7 +631,7 @@
         try {
           const key = 'oda_scores';
           const now = new Date().toISOString();
-          const entry = { points: points, date: now, oda: oda || 'ODA desconhecida' };
+          const entry = { points: points, date: now, oda: oda || 'Desconhecida' };
           const existing = localStorage.getItem(key);
           let arr = [];
           if (existing) {
@@ -601,6 +650,39 @@
         }
       }
 
+      // Recupera todas as pontuações salvas (retorna array)
+      function getSavedScores() {
+        try {
+          const raw = localStorage.getItem('oda_scores');
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      // Verifica se já existe interação do usuário com essa ODA (pelo título)
+      function hasInteractedWithOda(odaTitle) {
+        if (!odaTitle) return false;
+        const arr = getSavedScores();
+        const normalized = odaTitle.trim();
+        return arr.some(entry => (entry.oda || '').trim() === normalized);
+      }
+
+      // Retorna a última data de interação (string ISO) para esta ODA
+      function getLastInteractionDateForOda(odaTitle) {
+        if (!odaTitle) return null;
+        const arr = getSavedScores().filter(entry => (entry.oda || '').trim() === odaTitle.trim());
+        if (!arr || arr.length === 0) return null;
+        // pega o item com maior date
+        let last = arr[0];
+        for (const it of arr) {
+          if (it.date && (!last.date || it.date > last.date)) last = it;
+        }
+        return last.date || null;
+      }
+
       function startGame() {
         startScreen.classList.remove('active');
         gameScreen.classList.add('active');
@@ -610,7 +692,22 @@
         renderTasks(selectedTasks);
       }
 
-      startButton.addEventListener('click', startGame);
+      startButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        // captura o título para bloquear interação múltipla
+        const odaH2 = document.querySelector('#LP_OPCAO_2 h2');
+        const odaH1 = document.querySelector('.wrapper-itens h1');
+        const odaTitle = (odaH2 && odaH2.textContent) || (odaH1 && odaH1.textContent) || document.title || 'Desconhecida';
+        if (hasInteractedWithOda(odaTitle)) {
+          const last = getLastInteractionDateForOda(odaTitle);
+          const pretty = last ? new Date(last).toLocaleString() : 'desconhecida';
+          if (interactedMessage) interactedMessage.textContent = `Você já interagiu com esta atividade em ${pretty}. Você não pode realizá-la novamente.`;
+          if (interactedOverlay) interactedOverlay.style.display = 'flex';
+          if (interactedClose) interactedClose.focus();
+          return;
+        }
+        startGame();
+      });
       finalizeButton.addEventListener('click', function(e) {
         e.preventDefault();
         updatePointsAndShowPopup();
@@ -635,6 +732,12 @@
       if (popupClose) {
         popupClose.addEventListener('click', function() {
           popupOverlay.style.display = 'none';
+        });
+      }
+
+      if (interactedClose) {
+        interactedClose.addEventListener('click', function() {
+          if (interactedOverlay) interactedOverlay.style.display = 'none';
         });
       }
 
