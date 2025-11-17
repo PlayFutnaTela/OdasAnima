@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0008ff;
+            --anim-speed-fast: 0.8s;
+        }
+
+        #game-container h1 {
+            color: #fff;
+            text-align: center;
+            font-size: 30px;
+            margin: 0 0 10px 0;
+        }
+
+        .instruction-text-timeline {
+            color: gray;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+        
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            background-color: #2a2a2a;
+            padding: 20px;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            border-radius: 5px;
+        }
+
+        #timeline {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 13px;
+            margin-bottom: 20px;
+        }
+
+        .phase {
+            min-height: 250px;
+            background-color: #1e1dff;
+            color: white;
+            padding: 15px 10px;
+            border-radius: 8px;
+            cursor: grab;
+            user-select: none;
+            text-align: center;
+            flex: 1 1 150px;
+            max-width: 200px;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            transition: transform 0.2s;
+            background-size: cover;
+            background-position: center;
+            font-size: 18px;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .phase:before {
+            background-image: linear-gradient(45deg, #000000d6, #251d1d80) !important;
+        }
+
+        .phase.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        @keyframes animatePixel {
+            0% { background-position-y: 0; }
+            100% { background-position-y: -480px; }
+        }
+
+        #visual-timeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .timeline-point {
+            padding: 0 0 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            margin: 0 -30px -30px -30px;
+        }
+
+        .timeline-circle {
+            width: 10px;
+            height: 10px;
+            background-color: #1e1dff;
+            margin-bottom: 5px;
+            box-shadow: 0 3px #000, 0 -3px #000, 3px 0 #000, -3px 0 #000;
+        }
+
+        .timeline-label {
+            font-size: 12px;
+            color: #fff;
+            text-align: center;
+            text-shadow: 1px 1px #000;
+        }
+
+        .timeline-connector {
+            flex-grow: 1;
+            height: 4px;
+            background-color: #1e1dff;
+            margin: 0 10px;
+            box-shadow: 0 2px #000, 0 -2px #000;
+        }
+        
+        .wrapperbtn-line {
+            width: 50%;
+            margin: 60px 0 10px 0 !important;
+            display: flex;
+            justify-content: center;
+        }
+
+        #game-container a {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+            padding: 15px 20px;
+            font-size: 16px;
+            text-transform: uppercase;
+            font-weight: 800;
+            cursor: pointer;
+            color: #fff;
+            background-color: #1e1dff;
+            border: none;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            transition: transform 0.2s;
+            text-decoration: none;
+        }
+
+        #game-container a:hover {
+            transform: scale(1.05);
+            background: #1e1dff url(https://i.postimg.cc/8zN3QzKw/pixel-1.png);
+            background-size: 180px;
+            animation: animatePixel var(--anim-speed-fast) steps(8) forwards;
+        }
+
+        /* Mobile layout */
+        @media (max-width: 768px) {
+            #game-container {
+                max-width: 100%;
+            }
+
+            #timeline {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .phase {
+                width: 50%;
+                max-width: 300px;
+            }
+
+            #visual-timeline {
+                width: 1000px;
+                gap: 10px;
+                transform: rotate(90deg) translateY(120px) translateX(-700px);
+            }
+
+            .timeline-point {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .timeline-connector {
+                width: 100%;
+                height: 3px;
+                margin: 25px 0;
+            }
+
+            .timeline-label {
+                margin-left: 0px;
+                width: 100px;
+            }
+            
+            #game-container h1 {
+                color: #fff;
+                text-align: center;
+                font-size: 19px;
+                margin: 0 0 10px 0;
+                line-height: 25px;
+            }
+
+            #game-container a {
+                width: 80%;
+            }
+            .wrapperbtn-line {
+                width: 100%;
+                margin: -35px 0 10px 0 !important;
+                display: flex;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Organize a Linha do Tempo do Ciclo de Vida do Projeto</h1>
+        <i class="instruction-text-timeline">Para reorganizar as fases, segure, arraste e solte!</i>
+        <div id="timeline"></div>
+        <div id="visual-timeline">
+            <div class="timeline-point">
+                <div class="timeline-circle"></div>
+                <div class="timeline-label">1º passo</div>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-point">
+                <div class="timeline-circle"></div>
+                <div class="timeline-label">2º passo</div>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-point">
+                <div class="timeline-circle"></div>
+                <div class="timeline-label">3º passo</div>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-point">
+                <div class="timeline-circle"></div>
+                <div class="timeline-label">4º passo</div>
+            </div>
+            <div class="timeline-connector"></div>
+            <div class="timeline-point">
+                <div class="timeline-circle"></div>
+                <div class="timeline-label">5º passo</div>
+            </div>
+        </div>
+        <div class="wrapperbtn-line" id="LP_OPCAO_7">
+            <a pontos="0" alt="Hmm, você não organizou legal..." onclick="checkOrder()">Finalizar</a>
+        </div>
+    </div>
+
+    <script>
+        const phasesList = [
+            { name: "Iniciação", bg: "https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/mini-timeline-1.webp" },
+            { name: "Planejamento", bg: "https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/mini-timeline-5.webp" },
+            { name: "Execução", bg: "https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/mini-timeline-4.webp" },
+            { name: "Monitoramento", bg: "https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/mini-timeline-3.webp" },
+            { name: "Encerramento", bg: "https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/mini-timeline-2.webp" }
+        ];
+
+        const correctOrder = [
+            "Iniciação",
+            "Planejamento",
+            "Execução",
+            "Monitoramento",
+            "Encerramento"
+        ];
+
+        let hasClickedFinalize = false;
+
+        function setupGame() {
+            const timeline = document.getElementById("timeline");
+            timeline.innerHTML = "";
+            const shuffledPhases = [...phasesList].sort(() => Math.random() - 0.5);
+            shuffledPhases.forEach(phase => {
+                const div = document.createElement("div");
+                div.className = "phase";
+                div.textContent = phase.name;
+                div.style.backgroundImage = `url(${phase.bg})`;
+                div.draggable = true;
+                div.addEventListener("dragstart", dragStart);
+                div.addEventListener("dragover", dragOver);
+                div.addEventListener("drop", drop);
+                div.addEventListener("dragend", () => {
+                    dragEnd();
+                    updatePoints();
+                });
+                timeline.appendChild(div);
+            });
+            document.querySelector("#game-container a").setAttribute("pontos", "0");
+            document.querySelector("#game-container a").setAttribute("alt", "Hmm, você não organizou legal...");
+            hasClickedFinalize = false;
+            updatePoints();
+        }
+
+        function dragStart(e) {
+            e.dataTransfer.setData("text", e.target.textContent);
+            e.target.classList.add("dragging");
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const draggedPhase = e.dataTransfer.getData("text");
+            const targetPhase = e.target.textContent;
+            const phases = document.querySelectorAll(".phase");
+            const draggedElement = Array.from(phases).find(p => p.textContent === draggedPhase);
+            const targetElement = e.target;
+
+            if (targetElement.classList.contains("phase")) {
+                const draggedIndex = Array.from(phases).indexOf(draggedElement);
+                const targetIndex = Array.from(phases).indexOf(targetElement);
+                const parent = targetElement.parentNode;
+
+                if (draggedIndex < targetIndex) {
+                    parent.insertBefore(draggedElement, targetElement.nextSibling);
+                } else {
+                    parent.insertBefore(draggedElement, targetElement);
+                }
+            }
+        }
+
+        function dragEnd() {
+            document.querySelectorAll(".phase").forEach(phase => phase.classList.remove("dragging"));
+        }
+
+        function updatePoints() {
+            const phases = document.querySelectorAll(".phase");
+            let points = 0;
+            phases.forEach((phase, index) => {
+                if (phase.textContent === correctOrder[index]) {
+                    points += 20;
+                }
+            });
+            const finalizeLink = document.querySelector("#game-container a");
+            finalizeLink.setAttribute("pontos", points);
+            finalizeLink.setAttribute("alt", points > 50 ? "Boa, isso ai, você foi bem!" : "Hmm, você não organizou legal...");
+        }
+
+        
+
+function checkOrder() {
+    const phases = document.querySelectorAll(".phase");
+    let correct = true;
+    phases.forEach((phase, index) => {
+        if (phase.textContent !== correctOrder[index]) {
+            correct = false;
+        }
+    });
+    updatePoints(); // Atualiza os pontos antes de qualquer manipulação
+    if (!hasClickedFinalize) {
+        hasClickedFinalize = true;
+    }
+}
+        setupGame();
+    </script>
+</body>
+</html>

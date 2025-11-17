@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        #start-screen, #game-screen, #result-screen {
+            background: #2c3e50;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 0 auto;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        #start-screen h1, h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f0f4f8;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        #start-screen p {
+            font-size: 16px;
+            color: #bdc3c7;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        #start-screen button {
+            padding: 20px 75px;
+            font-size: 30px;
+            font-weight: 800!important;
+            background: #3498db;
+            border: none;
+            border-radius: 8px;
+            color: #fff!important;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        #game-screen a {
+            padding: 20px 75px;
+            font-size: 20px;
+            width: 100%;
+            font-weight: 800!important;
+            background: #3498db;
+            border: none;
+            border-radius: 8px;
+            color: #fff!important;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;    
+        }
+        #start-screen button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        #matrix {
+            display: grid;
+            grid-template-columns: repeat(2, 49.333%);
+            grid-template-rows: repeat(2, auto);
+            gap: 10px;
+            margin: 30px auto;
+            background: #34495e;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .quadrant {
+            background: #3e546b;
+            border: 2px solid #576d8a;
+            border-radius: 10px;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            flex-direction: column;
+            transition: transform 0.3s ease, background 0.2s ease;
+            position: relative;
+            padding: 10px 0 30px 0;
+        }
+        .quadrant:hover {
+            transform: translateY(-3px);
+            background: #4a6078;
+        }
+        .card {
+            width: 180px;
+            padding: 15px;
+            background: #4a6078;
+            border-radius: 10px;
+            margin: 10px;
+            cursor: move;
+            user-select: none;
+            /*position: relative;*/
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        .card.dragging {
+            opacity: 0.7;
+            transform: scale(0.95);
+            z-index: 1000;
+        }
+        .card strong {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f0f4f8;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .card p {
+            font-size: 15px!important;
+            font-style: normal;
+            line-height: 20px!important;
+            color: #bdc3c7;
+        }
+        #cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 00px;
+            margin-top: 20px;
+            padding: 0px;
+            background: #34495e;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #result-screen {
+            display: none;
+        }
+        #result-screen h1, #result-screen p {
+            color: white !important;
+        }
+        #labels {
+            position: absolute;
+            top: -30px;
+            left: 50px;
+            width: 400px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f4f8;
+        }
+        #labels div {
+            width: 200px;
+            text-align: center;
+        }
+        #v-labels {
+            position: absolute;
+            left: -70px;
+            top: 50px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f4f8;
+        }
+        #v-labels div {
+            height: 200px;
+            display: flex;
+            align-items: center;
+        }
+        .title-probability {
+            color: white;
+            margin-bottom:10px ;
+        }
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2c3e50;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            text-align: center;
+            color: #f0f4f8;
+            min-width: 280px;
+        }
+        #popup h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        #popup-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 80px);
+            gap: 10px;
+        }
+        .popup-quadrant {
+            background: #3e546b;
+            border: 2px solid #576d8a;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f0f4f8;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .popup-quadrant:hover {
+            background: #4a6078;
+            transform: translateY(-2px);
+        }
+        #popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+        }
+        @media (max-width: 600px) {
+            #matrix {
+                contain-intrinsic-block-size: auto 100px;
+                grid-template-columns: repeat(1, 100%);
+                grid-template-rows: repeat(4, auto);
+                gap: 8px;
+            }
+            #start-screen, #game-screen, #result-screen {
+                padding: 10px;
+            }
+            
+            #start-screen button{
+                padding: 20px 75px!important;
+                font-size: 30px!important;
+                width: 100%;
+                font-weight: 800 !important;
+                background: #3498db;
+                border: none;
+                border-radius: 8px;
+                color: #fff !important;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background 0.3s ease, transform 0.2s ease;
+                text-decoration: none;    
+            }
+            
+            .card {
+                width: 45%;
+                padding: 10px;
+                margin: 5px auto;
+            }
+            #cards-container {
+                /*position: relative;*/
+                /*display: block;*/
+                padding: 20px 0;
+            }
+            .card {
+                /*position: absolute;*/
+                /*top: 0;*/
+                /*left: 50%;*/
+                /*transform: translateX(-50%);*/
+                cursor: pointer;
+            }
+            /*.card:not(:last-child) {
+                visibility: hidden;
+            }*/
+            #labels {
+                width: 280px;
+                left: 40px;
+                font-size: 12px;
+            }
+            #v-labels {
+                left: -50px;
+                height: 280px;
+                font-size: 12px;
+            }
+            #labels div, #v-labels div {
+                width: 140px;
+                height: 140px;
+            }
+            #start-screen h1, h2 {
+                font-size: 22px;
+            }
+            #start-screen button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            .quadrant {
+                flex-direction: column;  
+                padding: 10px 0 20px 0
+            }
+            #result-screen h1 {
+                font-size: 35px!important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+        <h1>Monte sua Matriz de Risco</h1>
+        <p>Você receberá 8 situações. Sua missão é posicionar cada uma na matriz de risco, analisando probabilidade (Alta/Baixa) e impacto (Alto/Baixo). Acertar pode evitar o caos!</p>
+        <button onclick="startGame()">Começar</button>
+    </div>
+    <div id="game-screen" style="display: none;">
+        <h2>Matriz de Risco</h2>
+        <i style="color:white;width:100%;display:flex;align-items:center;justify-content:center;padding:0 10px;text-align:center;font-size:14px;">clique em um card para escolher onde colocá-lo!</i>
+        <div id="matrix">
+            <div class="quadrant" data-position="0"><b class="title-probability">Probabilidade Baixa / Impacto Alto</b></div>
+            <div class="quadrant" data-position="1"><b class="title-probability">Probabilidade Alta / Impacto Alto</b></div>
+            <div class="quadrant" data-position="2"><b class="title-probability">Probabilidade Baixa / Impacto Baixo</b></div>
+            <div class="quadrant" data-position="3"><b class="title-probability">Probabilidade Alta / Impacto Baixo</b></div>
+        </div>
+        <div id="cards-container"></div>
+        <!--<button id="submit" onclick="submitAnswers()">Enviar Respostas</button>-->
+        
+        <div class="" id="LP_OPCAO_7">
+            <a rel="noopener noreferrer" pontos="0" id="submit" onclick="submitAnswers()">Finalizar</a>
+        </div>
+        
+    </div>
+    <div id="result-screen">
+        <h1>Resultado Final</h1>
+        <p id="score"></p>
+        <p id="time"></p>
+        <p id="feedback"></p>
+        <p id="history"></p>
+    </div>
+    <div id="popup-overlay"></div>
+    <div id="popup">
+        <h3>Onde esse card deve ficar?</h3>
+        <div id="popup-grid">
+            <div class="popup-quadrant" data-position="0">Prob. Baixa / Impacto Alto</div>
+            <div class="popup-quadrant" data-position="1">Prob. Alta / Impacto Alto</div>
+            <div class="popup-quadrant" data-position="2">Prob. Baixa / Impacto Baixo</div>
+            <div class="popup-quadrant" data-position="3">Prob. Alta / Impacto Baixo</div>
+        </div>
+    </div>
+    <!-- popup para pontuação + confirmação de salvamento -->
+    <div id="popup-overlay-score" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2500"></div>
+    <div id="popup-score" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#2c3e50;color:#fff;border-radius:10px;padding:20px;z-index:2600;min-width:260px;text-align:center">
+        <h3 id="popup-score-title">Pontuação</h3>
+        <div id="popup-score-body" style="margin:12px 0; font-size:18px"></div>
+        <div style="margin-top:16px"><button id="btn-save-score" style="margin-right:8px;padding:8px 12px;background:#27ae60;border:none;color:#fff;border-radius:6px;cursor:pointer">Salvar</button><button id="btn-close-score" style="padding:8px 12px;background:#e74c3c;border:none;color:#fff;border-radius:6px;cursor:pointer">Fechar</button></div>
+    </div>
+    <script>
+        const cardsData = [
+            { id: 1, title: "Falha no Sistema", desc: "Sistema crítico cai por 2 horas.", correct: 1 },
+            { id: 2, title: "Vazamento de Dados", desc: "Dados sensíveis expostos.", correct: 1 },
+            { id: 3, title: "Erro de Configuração", desc: "Configuração errada em servidor.", correct: 2 },
+            { id: 4, title: "Ataque DDoS", desc: "Serviço interrompido por ataque.", correct: 1 },
+            { id: 5, title: "Bug Menor", desc: "Erro visual na interface.", correct: 3 },
+            { id: 6, title: "Atraso na Entrega", desc: "Projeto atrasado por 1 semana.", correct: 2 },
+            { id: 7, title: "Falha de Hardware", desc: "Servidor físico danificado.", correct: 0 },
+            { id: 8, title: "Erro de Usuário", desc: "Usuário insere dados incorretos.", correct: 3 }
+        ];
+        let startTime, scoreHistory = [];
+        let draggedCard = null;
+        let selectedCard = null;
+        let isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+        function startGame() {
+                    // Bloqueia replays: checa se já existe pontuação salva para esta ODA
+                    const odaTitle = getOdaTitle();
+                    const last = getLastInteractionDateForOda(odaTitle);
+                    if (last) {
+                        showInfoPopup(`Você já realizou essa atividade em ${new Date(last).toLocaleString()}. Não é possível jogar novamente.`);
+                        return;
+                    }
+
+                    document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            startTime = Date.now();
+            renderCards();
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            cardsData.forEach(card => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.dataset.id = card.id;
+                div.innerHTML = `<strong>${card.title}</strong><p>${card.desc}</p>`;
+                if (!isMobile) {
+                    div.draggable = true;
+                    div.addEventListener('dragstart', dragStart);
+                } else {
+                    div.addEventListener('click', showPopup);
+                }
+                container.appendChild(div);
+            });
+            document.querySelectorAll('.quadrant').forEach(quad => {
+                if (!isMobile) {
+                    quad.addEventListener('dragover', dragOver);
+                    quad.addEventListener('drop', drop);
+                }
+            });
+            if (isMobile) {
+                document.querySelectorAll('.popup-quadrant').forEach(quad => {
+                    quad.addEventListener('click', handlePopupSelection);
+                });
+            }
+            checkAllPlaced();
+        }
+
+        function dragStart(e) {
+            draggedCard = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const cardId = e.dataTransfer.getData('text');
+            const card = document.querySelector(`.card[data-id="${cardId}"]`);
+            card.classList.remove('dragging');
+            card.style.zIndex = '';
+            const quadrant = e.target.closest('.quadrant');
+            if (quadrant) {
+                quadrant.appendChild(card);
+                card.style.width = '80%';
+                card.style.position = 'relative';
+                card.style.left = '0';
+                card.style.top = '0';
+                card.draggable = true;
+                card.style.pointerEvents = 'auto';
+                checkAllPlaced();
+                updatePoints();
+            }
+            draggedCard = null;
+        }
+
+        function showPopup(e) {
+            selectedCard = e.target.closest('.card');
+            if (selectedCard) {
+                document.getElementById('popup').style.display = 'block';
+                document.getElementById('popup-overlay').style.display = 'block';
+            }
+        }
+
+        function handlePopupSelection(e) {
+            const quadrantPos = e.target.dataset.position;
+            const quadrant = document.querySelector(`.quadrant[data-position="${quadrantPos}"]`);
+            if (quadrant && selectedCard) {
+                quadrant.appendChild(selectedCard);
+                selectedCard.style.width = '90%';
+                selectedCard.style.margin = '10px 0 0 0';
+                checkAllPlaced();
+                updatePoints();
+            }
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('popup-overlay').style.display = 'none';
+            selectedCard = null;
+        }
+
+        function checkAllPlaced() {
+            const cards = document.querySelectorAll('.card');
+            const inQuadrants = Array.from(cards).every(card => card.parentElement.classList.contains('quadrant'));
+            document.getElementById('LP_OPCAO_7').style.display = inQuadrants ? 'block' : 'none';
+            if (isMobile) {
+                // Ensure only the top card is visible and clickable in mobile
+                const container = document.getElementById('cards-container');
+                const cardsInContainer = container.querySelectorAll('.card');
+                cardsInContainer.forEach((card, index) => {
+                    if (index === cardsInContainer.length - 1) {
+                        card.style.visibility = 'visible';
+                        card.style.zIndex = '10';
+                    } else {
+                        card.style.visibility = 'visible';
+                        card.style.zIndex = '0';
+                    }
+                });
+            }
+            updatePoints();
+        }
+        
+        function updatePoints() {
+            let score = 0;
+            document.querySelectorAll('.quadrant').forEach(quad => {
+                const quadPos = parseInt(quad.dataset.position);
+                const cards = quad.querySelectorAll('.card');
+                cards.forEach(card => {
+                    const cardData = cardsData.find(c => c.id == card.dataset.id);
+                    if (cardData.correct === quadPos) {
+                        score += 25;
+                    } else if (Math.abs(cardData.correct % 2 - quadPos % 2) + Math.abs(Math.floor(cardData.correct / 2) - Math.floor(quadPos / 2)) === 1) {
+                        score += 10;
+                    }
+                });
+            });
+            document.querySelector('#LP_OPCAO_7 a').setAttribute('pontos', score);
+        }
+        
+
+        function submitAnswers() {
+            let score = 0;
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            document.querySelectorAll('.quadrant').forEach(quad => {
+                const quadPos = parseInt(quad.dataset.position);
+                const cards = quad.querySelectorAll('.card');
+                cards.forEach(card => {
+                    const cardData = cardsData.find(c => c.id == card.dataset.id);
+                    if (cardData.correct === quadPos) {
+                        score += 25;
+                    } else if (Math.abs(cardData.correct % 2 - quadPos % 2) + Math.abs(Math.floor(cardData.correct / 2) - Math.floor(quadPos / 2)) === 1) {
+                        score += 10;
+                    }
+                });
+            });
+            const feedback = getFeedback(score);
+            scoreHistory.push({ score, time: timeTaken });
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('score').textContent = `Pontuação: ${score}/200`;
+            document.getElementById('time').textContent = `Tempo: ${timeTaken} segundos`;
+            document.getElementById('feedback').textContent = `Feedback: ${feedback}`;
+            document.getElementById('history').textContent = `Tentativas anteriores: ${scoreHistory.slice(0, -1).map(h => `Pontuação: ${h.score}, Tempo: ${h.time}s`).join('; ')}`;
+
+            // salva pontuação em localStorage para exibição em pontuacaov2.html
+            const odaTitle = getOdaTitle();
+            saveScoreToStorage(score, odaTitle);
+            // mostra popup de confirmação com pontuação
+            showScorePopup(score, odaTitle);
+        }
+
+        function getFeedback(score) {
+  let feedbackText = '';
+  let feedbackMsg = '';
+
+  if (score >= 180) {
+    feedbackText = "Excelente! Você é um mestre em gestão de riscos!";
+    feedbackMsg = 'Excelente! Você é um mestre em gestão de riscos!';
+  } else if (score >= 120) {
+    feedbackText = "Muito bom! Você entende bem os riscos, mas dava pra ser melhor...";
+    feedbackMsg = 'Muito bom! Você entende bem os riscos, mas dava pra ser melhor...';
+  } else if (score >= 80) {
+    feedbackText = "Você não foi mal, mas não foi bem, estude sobre gestão de riscos...";
+    feedbackMsg = 'Você não foi mal, mas não foi bem, estude sobre gestão de riscos...';
+  } else {
+    feedbackText = "Você não evitou o caos, Precisa estudar mais sobre gestão de riscos!";
+    feedbackMsg = 'Você não evitou o caos, Precisa estudar mais sobre gestão de riscos!';
+  }
+
+  // Aplica o alt dinamicamente com o número correspondente
+  document.querySelector('#LP_OPCAO_7 a').setAttribute('alt', feedbackMsg);
+
+  return feedbackText;
+}
+
+        
+        // function getFeedback(score) {
+        //     if (score >= 180) return "Excelente! Você é um mestre em gestão de riscos!";
+        //     if (score >= 120) return "Muito bom! Você entende bem os riscos, mas dava pra ser melhor...";
+        //     if (score >= 80) return "Você não foi mal, mas não foi bem, estude sobre gestão de riscos...";
+        //     return "Você não evitou o caos, Precisa estudar mais sobre gestão de riscos!";
+        // }
+        
+        
+
+        // function restartGame() {
+        //     document.getElementById('result-screen').style.display = 'none';
+        //     document.getElementById('start-screen').style.display = 'block';
+        //     document.getElementById('cards-container').innerHTML = '';
+        //     document.querySelectorAll('.quadrant').forEach(quad => quad.innerHTML = '');
+        //     document.getElementById('popup').style.display = 'none';
+        //     document.getElementById('popup-overlay').style.display = 'none';
+        // }
+    </script>
+    <script>
+        // Storage helpers
+        function normalizeTitle(str) {
+            if (!str) return '';
+            try { return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^0-9a-z ]/gi, '').replace(/\s+/g,' ').trim().toLowerCase(); }
+            catch (e) { return str.toString().trim().toLowerCase(); }
+        }
+
+        function getSavedScores() {
+            try {
+                const raw = localStorage.getItem('oda_scores');
+                if (!raw) return [];
+                const arr = JSON.parse(raw);
+                return Array.isArray(arr) ? arr : [];
+            } catch(e) { console.warn('Erro ao ler pontuações', e); return []; }
+        }
+
+        function saveScoreToStorage(points, oda) {
+            const arr = getSavedScores();
+            const now = new Date().toISOString();
+            const title = oda || document.title || getOdaTitle();
+            const normalized = normalizeTitle(title);
+            // Nome canônico (normalized -> display)
+            const canonicalOdaNames = { 'monte sua matriz de risco': 'Monte sua Matriz de Risco' };
+            const displayOda = canonicalOdaNames[normalized] || title;
+            // Não duplica pontuação para a mesma ODA
+            const already = arr.some(it => (it.oda_normalized || normalizeTitle(it.oda || '')) === normalized);
+            if (already) return null;
+            const entry = { points: Number(points) || 0, date: now, oda: displayOda, oda_normalized: normalized };
+            arr.push(entry);
+            localStorage.setItem('oda_scores', JSON.stringify(arr));
+            return entry;
+        }
+
+        function getOdaTitle() {
+            try { const h1 = document.querySelector('h1'); if (h1 && h1.textContent.trim()) return h1.textContent.trim(); } catch(e){}
+            return document.title || 'Desconhecida';
+        }
+
+        function getLastInteractionDateForOda(odaTitle) {
+            const key = normalizeTitle(odaTitle || getOdaTitle());
+            const list = getSavedScores();
+            // procura por igualdade normalizada
+            for (let i = list.length - 1; i >= 0; i--) {
+                const it = list[i];
+                if (it.oda_normalized && it.oda_normalized === key) return it.date;
+                if (it.oda && normalizeTitle(it.oda) === key) return it.date;
+            }
+            // fallback fuzzy: busca por includes
+            for (let i = list.length - 1; i >= 0; i--) {
+                const it = list[i];
+                if ((it.oda_normalized || '').includes(key) || (normalizeTitle(it.oda || '').includes(key))) return it.date;
+            }
+            return null;
+        }
+
+        // Popups: informação e pontuação
+        function showInfoPopup(message) {
+            const body = document.getElementById('popup-score-body');
+            const scorePanel = document.getElementById('popup-score');
+            const overlay = document.getElementById('popup-overlay-score');
+            document.getElementById('popup-score-title').textContent = 'Aviso';
+            body.textContent = message;
+            document.getElementById('btn-save-score').style.display = 'none';
+            document.getElementById('btn-close-score').textContent = 'Fechar';
+            overlay.style.display = 'block';
+            scorePanel.style.display = 'block';
+        }
+
+        function showScorePopup(score, odaName) {
+            const body = document.getElementById('popup-score-body');
+            const scorePanel = document.getElementById('popup-score');
+            const overlay = document.getElementById('popup-overlay-score');
+            document.getElementById('popup-score-title').textContent = 'Sua pontuação';
+            // usa nome canônico quando disponível
+            const normalized = normalizeTitle(odaName || getOdaTitle());
+            const canonicalOdaNames = { 'monte sua matriz de risco': 'Monte sua Matriz de Risco' };
+            const display = canonicalOdaNames[normalized] || odaName || getOdaTitle();
+            body.textContent = `${score} pts — ${display}`;
+            document.getElementById('btn-save-score').style.display = 'inline-block';
+            document.getElementById('btn-close-score').textContent = 'Fechar';
+            overlay.style.display = 'block';
+            scorePanel.style.display = 'block';
+        }
+
+        // fechar ao clicar fora, ESC, ou botões
+        document.getElementById('popup-overlay-score').addEventListener('click', () => { document.getElementById('popup-overlay-score').style.display = 'none'; document.getElementById('popup-score').style.display = 'none'; });
+        document.getElementById('btn-close-score').addEventListener('click', () => { document.getElementById('popup-overlay-score').style.display = 'none'; document.getElementById('popup-score').style.display = 'none'; });
+        document.getElementById('btn-save-score').addEventListener('click', () => {
+            // salva novamente (idempotente) e fecha
+            const text = document.getElementById('popup-score-body').textContent || '';
+            const parts = text.split(' — ');
+            const score = Number(parts[0]) || 0;
+            const oda = parts[1] || getOdaTitle();
+            saveScoreToStorage(score, oda);
+            // confirma salvo
+            document.getElementById('popup-score-body').textContent = 'Pontuação salva com sucesso!';
+            setTimeout(() => { document.getElementById('popup-overlay-score').style.display = 'none'; document.getElementById('popup-score').style.display = 'none'; }, 900);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('popup-overlay-score').style.display = 'none';
+                document.getElementById('popup-score').style.display = 'none';
+                document.getElementById('popup-overlay').style.display = 'none';
+                document.getElementById('popup').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

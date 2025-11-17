@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Game Quiz - Desafio Clássico</title>
+    <style>
+        /** {*/
+        /*    box-sizing: border-box;*/
+        /*    margin: 0;*/
+        /*    padding: 0;*/
+        /*    font-family: 'Press Start 2P', cursive;*/
+        /*}*/
+        :root {
+            --primary-color: #0008ff;
+            --anim-speed-fast: 0.8s;
+        }
+        .oda-wrapper {
+            margin: 0 auto;
+            max-width: 400px;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            flex-direction: column;
+            background: #2a2a2a;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            position: relative;
+        }
+        .quizz-oda {
+            display: none;
+            width: 100%;
+        }
+        .quizz-oda.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .image-oda {
+            width: 100%;
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            background-color: #fff;
+            image-rendering: pixelated;
+            border-top: 4px solid #000;
+            border-bottom: 4px solid #000;
+        }
+        .form {
+            background-image: url(https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/form-vazio-oda.webp);
+        }
+        .depoimentos {
+            background-image: url(https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/feedbacks-oda.webp);
+        }
+        .post-it {
+            background-image: url(https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/post-its-oda.webp);
+        }
+        .organizacao {
+            background-image: url(https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/bagunca-oda.webp);
+        }
+        .celebracao {
+            background-image: url(https://anima-mode.ecossistemaanima.com/wp-content/uploads/2025/08/celebracao-oda.webp);
+        }
+        .question-oda {
+    width: 100%;
+    min-height: 200px;
+    display: flex
+;
+    align-items: center;
+    justify-content: start;
+    flex-direction: column;
+    text-align: center;
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+}
+        .subtitle-oda-quizz {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #1b1b1b;
+        }
+        .title-oda-quizz {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #1b1b1b;
+        }
+        .question-oda a {
+            display: block;
+            width: 90%;
+            padding: 10px;
+            font-size: 23px;
+            font-weight: 800;
+            color: white!important;
+            background-color: #1e1dff;
+            border: none;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            margin: 10px 0;
+        }
+        .question-oda a:hover {
+            transform: scale(1.05);
+            background: #1e1dff url(https://i.postimg.cc/8zN3QzKw/pixel-1.png);
+            background-size: 180px;
+            animation: animatePixel var(--anim-speed-fast) steps(8) forwards;
+        }
+        .question-oda a:active {
+            transform: scale(1.05) translateY(5px);
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, inset 0 5px #00000038;
+            background: var(--primary-color) url(https://i.postimg.cc/8zN3QzKw/pixel-1.png);
+            background-size: 180px;
+            animation: animatePixel var(--anim-speed-fast) steps(8) forwards;
+        }
+        @keyframes animatePixel {
+            0% { background-position-y: 0; }
+            100% { background-position-y: -480px; }
+        }
+        .game-over {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            height: 300px;
+            position: absolute;
+            top: 0;
+            padding: 20px;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+        }
+        .popup {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #1b1b1b;
+            font-size: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px black, 0 -5px black, 5px 0 black, -5px 0 black, 0 10px #00000038, 5px 5px #00000038, -5px 5px #00000038, inset 0 5px #ffffff36;
+            z-index: 100;
+            max-width: 90%;
+        }
+        @media (max-width: 450px) {
+            .oda-wrapper {
+                max-width: 100%;
+            }
+            .question-oda {
+                bottom: -250px;
+                padding: 20px 0;
+            }
+            .question-oda a {
+                width: 80%;
+            }
+            .game-over {
+                height: 300px;
+                padding: 20px 0;
+            }
+            .popup {
+                font-size: 14px;
+                max-width: 90%;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <section class="oda-wrapper">
+        <div class="quizz-oda active" id="LP_OPCAO_228">
+            <div class="image-oda form"></div>
+            <div class="question-oda">
+                <b class="subtitle-oda-quizz">Estação de Trabalho - Relatório Final</b>
+                <b class="title-oda-quizz">O relatório está completo?</b>
+                <a href="#" pontos="-50" correta="false" alt="Putz, errou o relatório precisa ser preenchido!">Sim!</a>
+                <a href="#" pontos="50" correta="true" alt="Boa observação! Precisam preencher!">Não!</a>
+            </div>
+        </div>
+
+        <div class="quizz-oda" id="LP_OPCAO_333">
+            <div class="image-oda depoimentos"></div>
+            <div class="question-oda">
+                <b class="subtitle-oda-quizz">Estação de Trabalho - Depoimentos</b>
+                <b class="title-oda-quizz">Os depoimentos foram coletados?</b>
+                <a href="#" pontos="50" correta="true" alt="Boa observação! Pegaram todos...">Sim!</a>
+                <a href="#" pontos="-50" correta="false" alt="Putz, errou, eles foram coletados sim...">Não!</a>
+            </div>
+        </div>
+
+        <div class="quizz-oda" id="LP_OPCAO_3333">
+            <div class="image-oda post-it"></div>
+            <div class="question-oda">
+                <b class="subtitle-oda-quizz">Painel de Ideias - Lições Aprendidas</b>
+                <b class="title-oda-quizz">As lições aprendidas estão registradas no post-it?</b>
+                <a href="#" pontos="-50" correta="false" alt="Putz, errou, não anotaram nada...">Sim!</a>
+                <a href="#" pontos="50" correta="true" alt="Boa observação! Precisam documentar!">Não!</a>
+            </div>
+        </div>
+
+        <div class="quizz-oda" id="LP_OPCAO_33333">
+            <div class="image-oda organizacao"></div>
+            <div class="question-oda">
+                <b class="subtitle-oda-quizz">Estoque - Desmobilização</b>
+                <b class="title-oda-quizz">A equipe organizou as coisas depois da entrega do projeto?</b>
+                <a href="#" pontos="-50" correta="false" alt="Putz, errou, eles não arrumaram...">Sim!</a>
+                <a href="#" pontos="50" correta="true" alt="Boa observação! Precisam arruma isso!">Não!</a>
+            </div>
+        </div>
+
+        <div class="quizz-oda" id="LP_OPCAO_333333">
+            <div class="image-oda celebracao"></div>
+            <div class="question-oda">
+                <b class="subtitle-oda-quizz">Festa - Celebração e Reconhecimento</b>
+                <b class="title-oda-quizz">A celebração com a equipe foi feita?</b>
+                <a href="#" pontos="50" correta="true" alt="Boa observação! hora de festejar né haha!">Sim!</a>
+                <a href="#" pontos="-50" correta="false" alt="Putz, errou, estão fazendo a celebração sim.">Não!</a>
+            </div>
+        </div>
+
+        <div class="game-over">
+            <p>Pontuação Final: <span id="final-score"></span></p>
+        </div>
+
+        <div class="popup" id="popup"></div>
+    </section>
+
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        const questions = document.querySelectorAll('.quizz-oda');
+        const gameOverScreen = document.querySelector('.game-over');
+        const popup = document.getElementById('popup');
+        const finalScoreDisplay = document.getElementById('final-score');
+
+        function showQuestion(index) {
+            questions.forEach((question, i) => {
+                question.classList.toggle('active', i === index);
+            });
+        }
+
+        function showPopup(message) {
+            popup.textContent = message;
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+                nextQuestion();
+            }, 4000);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion(currentQuestion);
+            } else {
+                showGameOver();
+            }
+        }
+
+        function showGameOver() {
+            questions.forEach(q => q.classList.remove('active'));
+            gameOverScreen.style.display = 'flex';
+            finalScoreDisplay.textContent = score;
+        }
+
+        document.querySelectorAll('.question-oda a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const points = parseInt(link.getAttribute('pontos'));
+                const isCorrect = link.getAttribute('correta') === 'true';
+                const message = link.getAttribute('alt');
+                
+                score += points;
+                showPopup(message);
+            });
+        });
+
+        showQuestion(currentQuestion);
+    </script>
+</body>
+</html>

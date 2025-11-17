@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pontuações - ODA</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;color:#222;margin:0;padding:20px}
+    .card{background:#fff;border-radius:8px;padding:20px;max-width:600px;margin:30px auto;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+    h1{margin-top:0;text-align:center}
+    .score{display:flex;justify-content:space-between;padding:10px 6px;border-bottom:1px solid #eee}
+    .score:last-child{border-bottom:none}
+    .time{color:#666;font-size:13px}
+    a.back{display:inline-block;margin-top:12px;text-decoration:none;color:#3498db}
+    .empty{color:#8b8b8b;padding:18px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Confira sua Pontuação</h1>
+    <div id="scores-list"></div>
+    <div id="total-points" style="margin-top:16px;font-weight:700;text-align:center;color:#222"></div>
+  </div>
+  <script>
+    function readScores() {
+      const key = 'oda_scores';
+      const raw = localStorage.getItem(key);
+      if (!raw) return [];
+      try {
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr;
+      } catch (e) {
+        console.warn('Falha ao ler pontuações:', e);
+        return [];
+      }
+    }
+
+    function normalizeTitle(str) {
+      if (!str) return '';
+      try {
+        return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^0-9a-z ]/gi, '').replace(/\s+/g,' ').trim().toLowerCase();
+      } catch (e) { return str.toString().trim().toLowerCase(); }
+    }
+
+    // mapa de nomes canônicos (normalized -> display)
+    const canonicalOdaNames = {
+      'monte sua matriz de risco': 'Monte sua Matriz de Risco'
+    };
+
+    function render() {
+      const list = document.getElementById('scores-list');
+      const scores = readScores().slice().reverse(); // mostra as mais recentes primeiro
+      if (scores.length === 0) {
+        list.innerHTML = '<div class="empty">Nenhuma pontuação encontrada.</div>';
+        document.getElementById('total-points').textContent = '';
+        return;
+      }
+      list.innerHTML = '';
+      scores.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'score';
+        const date = new Date(s.date);
+        // Use original title if present; otherwise, fall back to normalized or 'Desconhecida'
+        let oda = s.oda || s.oda_normalized || 'Desconhecida';
+        // se tiver apenas a versão normalizada, tenta mapear para um nome canônico
+        if (!s.oda && s.oda_normalized) {
+          const key = normalizeTitle(s.oda_normalized);
+          if (canonicalOdaNames[key]) oda = canonicalOdaNames[key];
+          else oda = s.oda_normalized.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+        } else if (s.oda) {
+          // se tiver s.oda e for equivalente ao normalized do mapa, mostra nome canônico
+          const key = normalizeTitle(s.oda);
+          if (canonicalOdaNames[key]) oda = canonicalOdaNames[key];
+        }
+        // If using normalized, beautify (capitalize words)
+        if (!s.oda && s.oda_normalized) {
+          oda = s.oda_normalized.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+        }
+        // Alguns ODAs gravavam 'score' ao invés de 'points' — aceita ambos
+        const points = (typeof s.points !== 'undefined') ? s.points : (typeof s.score !== 'undefined' ? s.score : 0);
+        div.innerHTML = `<div><strong>${points} pts</strong><div>${oda}</div><div class="time">${date.toLocaleString()}</div></div>`;
+        list.appendChild(div);
+      });
+      // calcula o total de pontos ganhos
+      const totalPoints = scores.reduce((sum, s) => sum + (Number(s.points) || Number(s.score) || 0), 0);
+      const totalEl = document.getElementById('total-points');
+      totalEl.textContent = `Total de pontos ganhos: ${totalPoints} pts`;
+    }
+
+    render();
+  </script>
+</body>
+</html>
