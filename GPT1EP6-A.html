@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /*body {*/
+        /*    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;*/
+        /*    background: linear-gradient(135deg, #1e2a44 0%, #2c3e50 100%);*/
+        /*    color: #f0f4f8;*/
+        /*    margin: 0;*/
+        /*    padding: 20px;*/
+        /*    min-height: 100vh;*/
+        /*    display: flex;*/
+        /*    justify-content: center;*/
+        /*    align-items: flex-start;*/
+        /*}*/
+        #start-screen {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            margin: 0 auto;
+        }
+
+        /* código JS removido daqui para evitar erro de sintaxe — funções JS serão declaradas dentro de <script> */
+        #start-screen h1 {
+            font-size: clamp(24px, 5vw, 28px);
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #start-screen p {
+            font-size: clamp(14px, 4vw, 16px);
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        #game-screen {
+            display: none;
+            background: #2c3e50;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 1400px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .board-title {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 700;
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 10px;
+            color: #f0f4f8;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .board {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 15px;
+            background: #34495e;
+            scrollbar-width: thin;
+            scrollbar-color: #7f8c8d #34495e;
+            min-height: 300px;
+            overflow-x: auto;
+        }
+        .board::-webkit-scrollbar {
+            height: 8px;
+        }
+        .board::-webkit-scrollbar-track {
+            background: #34495e;
+            border-radius: 5px;
+        }
+        .board::-webkit-scrollbar-thumb {
+            background: #7f8c8d;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .board::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+        .column {
+            background: #3e546b;
+            border-radius: 12px;
+            width: clamp(250px, 30vw, 320px);
+            max-height: 400px;
+            min-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            scrollbar-width: thin;
+            scrollbar-color: #7f8c8d #3e546b;
+            touch-action: none; /* Improves touch dragging */
+        }
+        .column:hover {
+            transform: translateY(-5px);
+        }
+        .column::-webkit-scrollbar {
+            width: 8px;
+        }
+        .column::-webkit-scrollbar-track {
+            background: #3e546b;
+            border-radius: 5px;
+        }
+        .column::-webkit-scrollbar-thumb {
+            background: #7f8c8d;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .column::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+        .column.urgent { border-top: 5px solid #e74c3c; }
+        .column.important { border-top: 5px solid #f1c40f; }
+        .column.trivial { border-top: 5pxвсе solid #7f8c8d; }
+        .column h2 {
+            font-size: clamp(18px, 4vw, 22px);
+            font-weight: 600;
+            text-align: center;
+            margin: 0 0 10px 0;
+            color: #f0f4f8;
+            border-bottom: 2px solid #576d8a;
+            padding-bottom: 8px;
+        }
+        .card {
+            background: #4a6078;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 8px 0;
+            cursor: move;
+            color: #f0f4f8;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            touch-action: manipulation; /* Improves touch interaction */
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        .card.dragging {
+            opacity: 0.5;
+        }
+        .card strong {
+            font-size: clamp(16px, 3.5vw, 18px);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .card span {
+            font-size: clamp(12px, 3vw, 14px);
+            color: #bdc3c7;
+            display: block;
+            margin: 4px 0;
+        }
+        #result-screen {
+        display: none;
+        text-align: center;
+        background: #2c3e50;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        }
+        #result-screen h1 {
+            font-size: clamp(24px, 5vw, 28px);
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #result-screen p {
+            font-size: clamp(14px, 4vw, 16px);
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        #game-screen a {
+            width: 100%;
+            font-size: clamp(16px, 4vw, 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+        }
+        button, .submit-button {
+            padding: 15px 50px;
+            font-size: clamp(18px, 5vw, 24px);
+            font-weight: 800;
+            background: #3498db;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        button:hover, .submit-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        .align-button-board {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 0 10px 15px 10px;
+        }
+        .instruction-text {
+            font-size: clamp(12px, 3vw, 14px);
+            color: white;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .board {
+                flex-direction: column;
+                align-items: center;
+                overflow-x: hidden;
+            }
+            #start-screen h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 15px;
+    padding: 20px 0 0 00;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 25px;
+}
+#start-screen {
+        padding: 0 10px 10px 10px!important;
+    }
+    #result-screen h1 {
+    font-size: clamp(24px, 5vw, 28px);
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding: 20px 0 0 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+            .column {
+                width: 100%;
+                max-width: 90%;
+                min-width: 250px;
+                max-height: 300px;
+                margin-bottom: 15px;
+            }
+            #start-screen, #game-screen, #result-screen {
+                padding: 00px;
+            }
+            button, .submit-button {
+                padding: 12px 40px;
+                font-size: clamp(16px, 4vw, 20px);
+            }
+            #result-screen {
+        padding: 10px!important;
+    }
+        }
+        @media (max-width: 450px) {
+            .board-title {
+                font-size: clamp(18px, 5vw, 20px);
+                line-height: 1.2;
+            }
+            .column {
+                max-width: 100%;
+                min-width: 100%;
+            }
+            .column h2 {
+                font-size: clamp(16px, 4vw, 18px);
+            }
+            .card {
+                padding: 10px;
+            }
+            .card strong {
+                font-size: clamp(14px, 3.5vw, 16px);
+            }
+            .card span {
+                font-size: clamp(11px, 3vw, 12px);
+            }
+        }
+        @media (min-width: 1200px) {
+            #game-screen {
+                max-width: 1200px;
+            }
+            .column {
+                width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+    <h1 style="color: white;">Kanban Challenge – Equilibre ou sobrecarregue!</h1>
+    <p style="color: white;">Você terá que organizar um quadro de tarefas simuladas. Cada tarefa tem um tempo estimado e um prazo. Seu desafio é equilibrar produtividade, prazos e prioridade.</p>
+        <button onclick="startGame()">Iniciar</button>
+    </div>
+
+    <div id="game-screen">
+        <h1 class="board-title">Quadro Kanban</h1>
+        <i class="instruction-text">Para trocar os cards de coluna, segure, arraste e solte!</i>
+        <div class="board">
+            <div class="column urgent" id="urgent" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>🔴 Urgente</h2>
+            </div>
+            <div class="column important" id="important" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>🟡 Importante</h2>
+            </div>
+            <div class="column trivial" id="trivial" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>⚪ Tanto faz</h2>
+            </div>
+        </div>
+        <div class="align-button-board" id="LP_OPCAO_4">
+            <a rel="noopener noreferrer" pontos="0" class="submit-button" onclick="submitBoard()">Finalizar</a>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <h1 style="color: white;">Resultado Final</h1>
+        <p id="score"></p>
+        <p id="feedback"></p>
+    </div>
+
+    <!-- Popup reutilizável (aviso / salvar pontuação) -->
+    <div id="popup-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1200;justify-content:center;align-items:center">
+        <div id="popup" style="background:#fff;color:#111;padding:20px;border-radius:12px;max-width:420px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);text-align:center">
+            <h3 id="popup-title" style="margin:0 0 8px 0">Aviso</h3>
+            <p id="popup-message" style="margin:6px 0 12px 0"></p>
+            <div id="popup-score" style="font-weight:700"></div>
+            <button id="popup-close" style="background:#3498db;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;margin-top:12px">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        const tasks = [
+            { id: 'task1', title: 'Finalizar relatório', hours: 3, deadline: 'Entrega hoje', correctColumn: 'urgent' },
+            { id: 'task2', title: 'Estudar para prova', hours: 4, deadline: 'Amanhã', correctColumn: 'urgent' },
+            { id: 'task3', title: 'Planejamento estratégico', hours: 2, deadline: 'Próxima semana', correctColumn: 'important' },
+            { id: 'task4', title: 'Revisar documento', hours: 1, deadline: 'Sem prazo', correctColumn: 'trivial' },
+            { id: 'task5', title: 'Reunião com equipe', hours: 2, deadline: 'Em 3 dias', correctColumn: 'important' },
+            { id: 'task6', title: 'Assistir série', hours: 2, deadline: 'Sem prazo', correctColumn: 'trivial' }
+        ];
+
+        function startGame() {
+            // checa se já houve interação com esta ODA (para evitar replay)
+            const odaTitle = getOdaTitle();
+            const last = getLastInteractionDateForOda(odaTitle);
+            if (last) {
+                const pretty = new Date(last).toLocaleString();
+                showPopup('Já participou desta atividade', `Você já interagiu com esta atividade em ${pretty}.`, '');
+                return;
+            }
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            initializeCards();
+        }
+
+        function initializeCards() {
+            const urgentColumn = document.getElementById('urgent');
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.draggable = true;
+                card.id = task.id;
+                card.innerHTML = `<strong>${task.title}</strong><span>Tempo: ${task.hours}h</span><span>Prazo: ${task.deadline}</span>`;
+                card.ondragstart = drag;
+                urgentColumn.appendChild(card);
+            });
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData('text', ev.target.id);
+            ev.target.classList.add('dragging');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData('text');
+            const card = document.getElementById(data);
+            card.classList.remove('dragging');
+            ev.target.closest('.column').appendChild(card);
+        }
+
+        function submitBoard() {
+            let score = 0;
+            let urgentHours = 0, importantHours = 0, trivialHours = 0;
+            let urgentCount = 0, importantCount = 0, trivialCount = 0;
+
+            tasks.forEach(task => {
+                const card = document.getElementById(task.id);
+                const column = card.closest('.column').id;
+                if (column === task.correctColumn) {
+                    score += 10;
+                } else {
+                    score -= 5;
+                }
+                if (column === 'urgent') {
+                    urgentHours += task.hours;
+                    urgentCount++;
+                } else if (column === 'important') {
+                    importantHours += task.hours;
+                    importantCount++;
+                } else {
+                    trivialHours += task.hours;
+                    trivialCount++;
+                }
+            });
+
+            if (urgentCount > 0 && importantCount > 0 && trivialCount > 0) score += 20;
+            if (urgentHours + importantHours <= 8) score += 30;
+            if (urgentHours <= 4) score += 30;
+            if (Math.abs(urgentCount - importantCount) <= 1 && Math.abs(importantCount - trivialCount) <= 1) score += 20;
+            if (urgentCount + importantCount + trivialCount === tasks.length) score += 20;
+
+            score = Math.max(0, Math.min(score, 180));
+
+            // Update the pontos attribute
+            const submitButton = document.querySelector('.submit-button');
+            submitButton.setAttribute('pontos', score);
+            
+
+            let feedback;
+            if (score >= 120) {
+                feedback = 'Parabéns! Você equilibrou bem as tarefas!';
+            } else if (score >= 60) {
+                feedback = 'Bom trabalho, mas havia espaço para melhorar o equilíbrio.';
+            } else {
+                feedback = 'Você foi mal! O equilíbrio das tarefas poderia ter sido melhor ein...';
+            }
+            
+            submitButton.setAttribute('alt', feedback);
+            
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('score').textContent = `Pontuação: ${score}/180`;
+            document.getElementById('feedback').textContent = feedback;
+            try {
+                const odaName = document.querySelector('.board-title')?.textContent || document.title || 'Quadro Kanban';
+                saveScoreToStorage(score, odaName);
+                const when = new Date().toLocaleString();
+                showPopup('Pontuação salva', `Sua pontuação de ${score} pontos foi salva em ${when}.`, `Pontuação: ${score}`);
+            } catch (e) { console.warn('Erro ao salvar score: ', e); }
+        }
+
+            // ---- Storage & modal helpers (compatível com pontuacao.html) ----
+            function saveScoreToStorage(points, oda) {
+                try {
+                    const key = 'oda_scores';
+                    const now = new Date().toISOString();
+                    const entry = { points: points, date: now, oda: (oda || document.title || 'Quadro Kanban') };
+                    const existing = localStorage.getItem(key);
+                    let arr = [];
+                    if (existing) {
+                        try { arr = JSON.parse(existing) || []; } catch (e) { arr = []; }
+                    }
+                    arr.push(entry);
+                    localStorage.setItem(key, JSON.stringify(arr));
+                } catch (e) { console.warn('Não foi possível salvar a pontuação:', e); }
+            }
+
+            function getSavedScores() {
+                try {
+                    const raw = localStorage.getItem('oda_scores');
+                    if (!raw) return [];
+                    const arr = JSON.parse(raw);
+                    return Array.isArray(arr) ? arr : [];
+                } catch (e) { return []; }
+            }
+
+            function getLastInteractionDateForOda(odaTitle) {
+                if (!odaTitle) return null;
+                const arr = getSavedScores().filter(entry => (entry.oda || '').trim() === odaTitle.trim());
+                if (!arr || arr.length === 0) return null;
+                let last = arr[0];
+                for (const it of arr) {
+                    if (it.date && (!last.date || it.date > last.date)) last = it;
+                }
+                return last.date || null;
+            }
+
+            function showPopup(title, message, scoreText) {
+                const overlay = document.getElementById('popup-overlay');
+                const titleEl = document.getElementById('popup-title');
+                const msgEl = document.getElementById('popup-message');
+                const scoreEl = document.getElementById('popup-score');
+                const closeBtn = document.getElementById('popup-close');
+                if (!overlay) return;
+                titleEl.textContent = title || 'Aviso';
+                msgEl.textContent = message || '';
+                scoreEl.textContent = scoreText || '';
+                overlay.style.display = 'flex';
+                closeBtn.focus();
+                closeBtn.onclick = () => overlay.style.display = 'none';
+            }
+
+            function getOdaTitle() {
+                const startH1 = document.querySelector('#start-screen h1');
+                const boardTitle = document.querySelector('.board-title');
+                return (startH1 && startH1.textContent) || (boardTitle && boardTitle.textContent) || document.title || 'Desconhecida';
+            }
+
+            (function attachPopupHandlers() {
+                const overlay = document.getElementById('popup-overlay');
+                if (!overlay) return;
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) overlay.style.display = 'none';
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && overlay.style.display === 'flex') overlay.style.display = 'none';
+                });
+            })();
+    </script>
+</body>
+</html>
