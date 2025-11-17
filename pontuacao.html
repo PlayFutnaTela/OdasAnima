@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pontuações - ODA</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;color:#222;margin:0;padding:20px}
+    .card{background:#fff;border-radius:8px;padding:20px;max-width:600px;margin:30px auto;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+    h1{margin-top:0;text-align:center}
+    .score{display:flex;justify-content:space-between;padding:10px 6px;border-bottom:1px solid #eee}
+    .score:last-child{border-bottom:none}
+    .time{color:#666;font-size:13px}
+    a.back{display:inline-block;margin-top:12px;text-decoration:none;color:#3498db}
+    .empty{color:#8b8b8b;padding:18px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Confira sua Pontuação</h1>
+    <div id="scores-list"></div>
+  </div>
+  <script>
+    function readScores() {
+      const key = 'oda_scores';
+      const raw = localStorage.getItem(key);
+      if (!raw) return [];
+      try {
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr;
+      } catch (e) {
+        console.warn('Falha ao ler pontuações:', e);
+        return [];
+      }
+    }
+
+    function render() {
+      const list = document.getElementById('scores-list');
+      const scores = readScores().slice().reverse(); // mostra as mais recentes primeiro
+      if (scores.length === 0) {
+        list.innerHTML = '<div class="empty">Nenhuma pontuação encontrada.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      scores.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'score';
+        const date = new Date(s.date);
+        const oda = s.oda || 'Desconhecida';
+        div.innerHTML = `<div><strong>${s.points} pts</strong><div>${oda}</div><div class="time">${date.toLocaleString()}</div></div>`;
+        list.appendChild(div);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

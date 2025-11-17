@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .wrapper-itens {
+      /*font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;*/
+      /*background: linear-gradient(135deg, #1e2a44 0%, #2c3e50 100%);*/
+      color: #fff;
+      padding: 40px 0px;
+      width: 100%;
+    }
+    
+    .container .delete-task {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 13px;
+      position: absolute;
+      right: 0;
+      transition: color 0.3s ease;
+    }
+    
+    .container .delete-task:hover {
+      background-color: transparent;
+    }
+
+    .wrapper-itens .container {
+      background: #2c3e50;
+      border-radius: 20px;
+      padding: 40px 10px;
+      margin: 0 auto;
+      max-width: 800px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    .wrapper-itens h1, h2 {
+      color: #f0f4f8;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .wrapper-itens button, a#finalize-button {
+      background: #3498db;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .wrapper-itens button:hover, a#finalize-button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+    }
+
+    #start-screen, #game-screen {
+      display: none;
+    }
+
+    #start-screen.active, #game-screen.active {
+      display: block;
+    }
+
+    #timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: #34495e;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #7f8c8d #34495e;
+    }
+
+    #timeline::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    #timeline::-webkit-scrollbar-track {
+      background: #34495e;
+      border-radius: 5px;
+    }
+
+    #timeline::-webkit-scrollbar-thumb {
+      background: #7f8c8d;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+
+    #timeline::-webkit-scrollbar-thumb:hover {
+      background: #95a5a6;
+    }
+
+    .time-slot {
+      display: flex;
+      align-items: center;
+      height: 50px;
+      border: 1px solid #576d8a;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 14px;
+      background: #3e546b;
+      position: relative;
+      max-height: 35px;
+      color: #f0f4f8;
+      transition: transform 0.3s ease;
+    }
+
+    .time-slot:hover {
+      transform: translateY(-5px);
+    }
+
+    .time-slot.filled {
+      background: #295d95;
+      border: 1px solid #3498db;
+    }
+
+    .time-slot.over {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+    }
+
+    .time-slot .task-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      cursor: move;
+      color: #f0f4f8;
+      position: relative;
+    }
+
+    #tasks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      min-height: 60px;
+      border: 2px dashed #576d8a;
+      border-radius: 15px;
+      padding: 20px;
+      background: #34495e;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .task-card {
+      background: #4a6078;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 14px;
+      text-align: center;
+      display: flex;
+      cursor: move;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      user-select: none;
+      justify-content: center;
+      align-items: center;
+      color: #f0f4f8;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .task-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .task-card.dragging, .time-slot .task-content.dragging {
+      opacity: 0.8;
+      background: #3498db;
+      border: 1px solid #2980b9;
+    }
+
+    #total-hours {
+      font-size: 16px;
+      color: #f0f4f8;
+      margin-bottom: 10px;
+    }
+
+    #popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #popup {
+      background: #2c3e50;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      color: #f0f4f8;
+    }
+
+    /* Botão fechar no popup */
+    #popup-close {
+      position: absolute;
+      right: 18px;
+      top: 12px;
+      background: transparent;
+      border: none;
+      color: #f0f4f8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+    }
+    #popup-close:hover {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+
+    #popup-message {
+      font-size: 16px;
+      color: #f0f4f8;
+      margin: 15px 0;
+      line-height: 20px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    #popup-image {
+      max-width: 100%;
+      height: auto;
+      margin: 0;
+      border-radius: 8px;
+    }
+
+    #titlePopUp {
+      font-family: 'Ethnocentric', sans-serif;
+      font-size: 25px;
+      color: #f0f4f8;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      .wrapper-itens h1, h2 {
+        font-size: 24px;
+      }
+
+      .task-card, .time-slot .task-content {
+        font-size: 12px;
+        padding: 10px;
+      }
+
+      .time-slot {
+        font-size: 12px;
+        height: 40px;
+      }
+
+      #popup {
+        max-width: 90%;
+        padding: 20px;
+      }
+
+      .delete-task {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 450px) {
+      .wrapper-itens h1, h2 {
+        font-size: 20px;
+        line-height: 24px;
+      }
+
+      .task-card {
+        max-width: 100px;
+        min-width: 100px;
+      }
+
+      #timeline, #tasks {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper-itens">
+    <div class="container">
+      <div id="start-screen" class="active">
+        <h1>Você só tem um dia. Use bem.</h1>
+        <p>Você recebeu tarefas e uma agenda vazia. Organize o seu dia seguindo apenas UMA simples instrução! <br><br><b style="font-size:25px;text-transform:Uppercase;">Seja Produtivo!</b></p>
+        <button id="start-button">Começar</button>
+      </div>
+
+      <div id="game-screen">
+        <div id="LP_OPCAO_2">
+          <h2>Organize sua Agenda</h2>
+          <p>Arraste as tarefas para os horários disponíveis.</p>
+          <div id="total-hours" style="margin-bottom:10px; color:#f0f4f8; font-weight:600;">Horas alocadas: 0h</div>
+          <div id="timeline"></div>
+          <div id="tasks"></div>
+          <a href="#" id="finalize-button" pontos="0">Finalizar Agenda</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup -->
+      <div id="popup-overlay">
+    <div id="popup">
+      <button id="popup-close" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      <span id="titlePopUp"></span>
+      <p id="popup-message"></p>
+          <p id="popup-score" style="font-size:18px; font-weight:700; margin:6px 0; color:#f0f4f8;"></p>
+      <!-- <img id="popup-image" src="" alt="Feedback Image"> -->
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const allTasks = [
+        { name: 'Estudar para prova', duration: 3 },
+        { name: 'Fazer exercício físico', duration: 1 },
+        { name: 'Reunião com grupo', duration: 2 },
+        { name: 'Almoço', duration: 1 },
+        { name: 'Assistir série favorita', duration: 2 },
+        { name: 'Ler artigo técnico', duration: 2 },
+        { name: 'Planejar semana', duration: 1 },
+        { name: 'Jogar videogame', duration: 2 },
+        { name: 'Mexer no celular', duration: 2 }
+      ];
+
+      let selectedTasks = [];
+      let timelineTasks = [];
+
+      const startScreen = document.getElementById('start-screen');
+      const gameScreen = document.getElementById('game-screen');
+      const timeline = document.getElementById('timeline');
+      const tasksContainer = document.getElementById('tasks');
+      const startButton = document.getElementById('start-button');
+      const finalizeButton = document.getElementById('finalize-button');
+      const totalHoursDisplay = document.getElementById('total-hours');
+      const popupOverlay = document.getElementById('popup-overlay');
+      const popupMessage = document.getElementById('popup-message');
+      const popupTitle = document.getElementById('titlePopUp');
+      const popupScore = document.getElementById('popup-score');
+      const popupClose = document.getElementById('popup-close');
+    //   const popupImage = document.getElementById('popup-image');
+
+      function renderTimeline() {
+        timeline.innerHTML = '';
+        for (let hour = 8; hour < 18; hour++) {
+          const slot = document.createElement('div');
+          slot.classList.add('time-slot');
+          slot.dataset.hour = hour;
+          slot.innerHTML = `${hour}:00 - ${hour + 1}:00`;
+          slot.addEventListener('dragover', (e) => e.preventDefault());
+          slot.addEventListener('drop', handleDrop);
+          timeline.appendChild(slot);
+        }
+      }
+
+      function renderTasks(tasks) {
+        tasksContainer.innerHTML = '';
+        tasks.forEach((task, index) => {
+          const card = document.createElement('div');
+          card.classList.add('task-card');
+          card.draggable = true;
+          card.dataset.index = index;
+          card.innerHTML = `${task.name} (${task.duration}h)`;
+          card.addEventListener('dragstart', handleDragStart);
+          tasksContainer.appendChild(card);
+        });
+        tasksContainer.addEventListener('dragover', (e) => e.preventDefault());
+        tasksContainer.addEventListener('drop', handleDropToTasks);
+      }
+
+      function handleDragStart(e) {
+        e.target.classList.add('dragging');
+        const isFromTimeline = e.target.classList.contains('task-content');
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          index: e.target.dataset.index,
+          fromTimeline: isFromTimeline,
+          startHour: isFromTimeline ? parseInt(e.target.dataset.startHour) : null,
+          duration: isFromTimeline ? parseFloat(e.target.dataset.duration) : null
+        }));
+      }
+
+      function areSlotsAvailable(startHour, duration) {
+        const endHour = startHour + duration;
+        if (endHour > 18) return false;
+        for (let hour = startHour; hour < endHour; hour++) {
+          if (timelineTasks.some(task => task.startHour <= hour && hour < task.startHour + task.duration)) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const taskIndex = parseInt(data.index);
+        const fromTimeline = data.fromTimeline;
+        const slot = e.target.closest('.time-slot');
+        if (!slot) return;
+
+        const startHour = parseInt(slot.dataset.hour);
+        let task;
+        if (fromTimeline) {
+          task = timelineTasks.find(t => t.startHour === data.startHour && t.duration === parseFloat(data.duration));
+          timelineTasks = timelineTasks.filter(t => t !== task);
+          clearSlots(data.startHour, data.duration);
+        } else {
+          task = selectedTasks[taskIndex];
+        }
+
+        if (!areSlotsAvailable(startHour, task.duration)) {
+          slot.classList.add('over');
+          setTimeout(() => slot.classList.remove('over'), 500);
+          return;
+        }
+
+        timelineTasks.push({ ...task, startHour });
+        if (!fromTimeline) {
+          selectedTasks.splice(taskIndex, 1);
+          renderTasks(selectedTasks);
+        }
+        updateTimeline();
+      }
+
+      function handleDropToTasks(e) {
+        e.preventDefault();
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (!data.fromTimeline) return;
+
+        const task = timelineTasks.find(t => t.startHour === data.startHour && t.duration === parseFloat(data.duration));
+        timelineTasks = timelineTasks.filter(t => t !== task);
+        clearSlots(data.startHour, data.duration);
+
+        selectedTasks.push({ name: task.name, duration: task.duration });
+        renderTasks(selectedTasks);
+        updateTimeline();
+      }
+
+      function handleDeleteTask(taskIndex) {
+        const task = timelineTasks[taskIndex];
+        timelineTasks = timelineTasks.filter((_, i) => i !== taskIndex);
+        clearSlots(task.startHour, task.duration);
+        selectedTasks.push({ name: task.name, duration: task.duration });
+        renderTasks(selectedTasks);
+        updateTimeline();
+      }
+
+      function clearSlots(startHour, duration) {
+        const endHour = startHour + duration;
+        for (let hour = startHour; hour < endHour; hour++) {
+          const slot = document.querySelector(`.time-slot[data-hour="${hour}"]`);
+          if (slot) {
+            slot.classList.remove('filled');
+            slot.innerHTML = `${hour}:00 - ${hour + 1}:00`;
+          }
+        }
+      }
+
+      function updateTimeline() {
+        renderTimeline();
+        timelineTasks.forEach((task, index) => {
+          const startSlot = document.querySelector(`.time-slot[data-hour="${task.startHour}"]`);
+          if (startSlot) {
+            const slotHeight = 50;
+            const slotMargin = 5;
+            const durationInSlots = task.duration;
+            startSlot.style.height = `${slotHeight * durationInSlots + slotMargin * (durationInSlots - 1)}px`;
+            startSlot.classList.add('filled');
+            startSlot.innerHTML = `
+              <div class="task-content" draggable="true" data-index="${index}" data-start-hour="${task.startHour}" data-duration="${task.duration}">
+                ${task.name} (${task.duration}h)
+                <button class="delete-task" data-index="${index}"><i class="fas fa-times"></i></button>
+              </div>
+            `;
+            for (let i = 1; i < durationInSlots; i++) {
+              const nextSlot = document.querySelector(`.time-slot[data-hour="${task.startHour + i}"]`);
+              if (nextSlot) {
+                nextSlot.classList.add('filled');
+                nextSlot.innerHTML = '';
+              }
+            }
+            const taskContent = startSlot.querySelector('.task-content');
+            if (taskContent) taskContent.addEventListener('dragstart', handleDragStart);
+            const deleteButton = startSlot.querySelector('.delete-task');
+            if (deleteButton) deleteButton.addEventListener('click', () => handleDeleteTask(index));
+          }
+        });
+        const totalHours = timelineTasks.reduce((sum, t) => sum + t.duration, 0);
+        totalHoursDisplay.textContent = `Horas alocadas: ${totalHours}h`;
+      }
+
+      function updatePointsAndShowPopup() {
+        const positiveTasks = [
+          'Reunião com grupo',
+          'Planejar semana',
+          'Estudar para prova',
+          'Ler artigo técnico',
+          'Almoço',
+          'Fazer exercício físico'
+        ];
+        const negativeTasks = [
+          'Assistir série favorita',
+          'Jogar videogame',
+          'Mexer no celular'
+        ];
+
+        let totalPoints = 0;
+        timelineTasks.forEach(task => {
+          if (positiveTasks.includes(task.name)) {
+            totalPoints += 50;
+          } else if (negativeTasks.includes(task.name)) {
+            totalPoints -= 50;
+          }
+        });
+
+        let message = '';
+        let pointsText = '';
+        // let imageSrc = '';
+
+        if (totalPoints === 300) {
+          message = 'Boa! Gabaritou, Parabéns. Você escolheu as tarefas certas! Você é quase um monge da produtividade.';
+          pointsText = 'Boa, você foi bem!';
+        //   imageSrc = '/wp-content/uploads/2025/06/dex-dance-positive.gif';
+        } else if (totalPoints <= 300) {
+          message = 'Você não foi bem...Colocou algumas coisas que podem atrapalhar sua rotina.';
+          pointsText = 'Podia ter ganhado mais pontos ein...';
+        //   imageSrc = '/wp-content/uploads/2025/06/barkley-negative-giphy.gif';
+        } 
+        
+        finalizeButton.setAttribute('pontos', totalPoints);
+        finalizeButton.setAttribute('alt', pointsText);
+        // mostra a pontuação também no botão e no popup
+        finalizeButton.textContent = `Finalizar Agenda (${totalPoints} pts)`;
+        if (popupScore) popupScore.textContent = `Pontuação: ${totalPoints} pontos`;
+        // salva a pontuação em localStorage para captura em outra página
+        // captura o título da ODA (H2 dentro de #LP_OPCAO_2) — corresponde a "Organize sua Agenda"
+        // se não existir, faz fallback para h1 e então para título do documento
+        const odaH2 = document.querySelector('#LP_OPCAO_2 h2');
+        const odaH1 = document.querySelector('.wrapper-itens h1');
+        const odaTitle = (odaH2 && odaH2.textContent) || (odaH1 && odaH1.textContent) || document.title || 'Desconhecida';
+        saveScoreToStorage(totalPoints, odaTitle.trim());
+        popupTitle.textContent = pointsText;
+        popupMessage.textContent = message;
+        // popupImage.src = imageSrc;
+        popupOverlay.style.display = 'flex';
+        // Coloca foco no botão fechar para acessibilidade e permitir fechar com Enter
+        if (popupClose) popupClose.focus();
+      }
+
+      function saveScoreToStorage(points, oda) {
+        try {
+          const key = 'oda_scores';
+          const now = new Date().toISOString();
+          const entry = { points: points, date: now, oda: oda || 'ODA desconhecida' };
+          const existing = localStorage.getItem(key);
+          let arr = [];
+          if (existing) {
+            try {
+              arr = JSON.parse(existing) || [];
+            } catch (err) {
+              arr = [];
+            }
+          }
+          arr.push(entry);
+          localStorage.setItem(key, JSON.stringify(arr));
+          // adiciona info para o autor — atributo para futura leitura
+          finalizeButton.setAttribute('data-saved', 'true');
+        } catch (e) {
+          console.warn('Não foi possível salvar a pontuação:', e);
+        }
+      }
+
+      function startGame() {
+        startScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+        selectedTasks = [...allTasks];
+        timelineTasks = [];
+        renderTimeline();
+        renderTasks(selectedTasks);
+      }
+
+      startButton.addEventListener('click', startGame);
+      finalizeButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        updatePointsAndShowPopup();
+      });
+
+      // Fecha o popup quando o usuário clicar fora do painel (no overlay)
+      popupOverlay.addEventListener('click', function(e) {
+        // Se o clique for exatamente no overlay (fora do popup), fecha
+        if (e.target === popupOverlay) {
+          popupOverlay.style.display = 'none';
+        }
+      });
+
+      // Fecha o popup quando o usuário pressionar Esc
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && popupOverlay.style.display === 'flex') {
+          popupOverlay.style.display = 'none';
+        }
+      });
+
+      // Fecha o popup quando o usuário clicar no botão Fechar
+      if (popupClose) {
+        popupClose.addEventListener('click', function() {
+          popupOverlay.style.display = 'none';
+        });
+      }
+
+      startScreen.classList.add('active');
+    });
+  </script>
+</body>
+</html>
