@@ -19,6 +19,7 @@
   <div class="card">
     <h1>Confira sua Pontuação</h1>
     <div id="scores-list"></div>
+    <div id="total-points" style="margin-top:16px;font-weight:700;text-align:center;color:#222"></div>
   </div>
   <script>
     function readScores() {
@@ -40,6 +41,7 @@
       const scores = readScores().slice().reverse(); // mostra as mais recentes primeiro
       if (scores.length === 0) {
         list.innerHTML = '<div class="empty">Nenhuma pontuação encontrada.</div>';
+        document.getElementById('total-points').textContent = '';
         return;
       }
       list.innerHTML = '';
@@ -51,6 +53,10 @@
         div.innerHTML = `<div><strong>${s.points} pts</strong><div>${oda}</div><div class="time">${date.toLocaleString()}</div></div>`;
         list.appendChild(div);
       });
+      // calcula o total de pontos ganhos
+      const totalPoints = scores.reduce((sum, s) => sum + (Number(s.points) || 0), 0);
+      const totalEl = document.getElementById('total-points');
+      totalEl.textContent = `Total de pontos ganhos: ${totalPoints} pts`;
     }
 
     render();
